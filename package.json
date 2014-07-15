@@ -21,8 +21,6 @@
   ],
   "dependencies": {
     "coffee-script" : "*",
-    "http-proxy"    : "*",
-    "jade"          : "*",
     "js-yaml"       : "*"
   },
   "main": "./index.js",

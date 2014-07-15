@@ -9,51 +9,75 @@ YOI
 
 # Libraries
 http      = require "http"
-httpProxy = require "http-proxy"
-
-# Configuration
 
 ZenProxy =
 
   run: (callback) ->
     console.log "It's ok from zenproxy"
 
-
-    # -- TEST.1 -> Basic proxy -------------------------------------------------
-    proxy = httpProxy.createProxyServer({target:'http://localhost:8000'}).listen(9000)
-    proxy.on "error", (err, req, res) ->
-      res.writeHead 500, "Content-Type": "text/plain"
-      res.end "Something went wrong. And we are reporting a custom error message."
-      return
-
-
-    # -- TEST.2 -> Delay proxies -----------------------------------------------
-    proxyRandom = httpProxy.createProxyServer({target:'http://localhost:8001'}).listen(9001)
-    # Random NODEJS servers (from :8001 to :8010)
-    port = 8000
+    # -- Random NODEJS servers (from :1981 to :1990) ---------------------------
+    machines = []
+    port = 1980
     for i in [1..10]
       port++
-      do =>
-        http.createServer((req, res) ->
-          setTimeout ->
-            console.log req.connection.server.domain, req.connection.server._connectionKey
-            res.writeHead 200, "Content-Type": "text/plain"
-            res.write "request successfully proxied!" + "\n" + JSON.stringify(req.headers, true, 2)
-            res.end()
-          , 500
-          return
-        ).listen port
+      machines.push "localhost:#{port}"
+      http.createServer((req, res) ->
+        res.writeHead 200, "Content-Type": "text/plain"
+        res.write "PI: #{__estimatePi()} \n"
+        res.write JSON.stringify(req.headers, true, 2)
+        res.end()
+        return
+      ).listen port
+
+    # -- TEST.1 -> Machine Balancer (RANDOM) -----------------------------------
+    http.createServer((request, response) ->
+      machine = machines[Math.floor Math.random() * (machines.length)]
+      __proxyRequest request, response, machine
+    ).listen 3000
+
+    # -- TEST.2 -> Machine Balancer (ROUND-ROBIN) ------------------------------
+    http.createServer((request, response) ->
+      machine = machines.shift()
+      __proxyRequest request, response, machine
+      machines.push machine
+    ).listen 3001
+
+    # -- TEST.3 -> Machine Balancer (CPU) --------------------------------------
 
 
-    # -- TEST.3 -> Machine Balancer --------------------------------------------
-    proxyBalancer = httpProxy.createProxyServer (req, res, proxy) ->
-      target =
-        host: 'localhost'
-        port: 8002
-      proxy.proxyBalancer req, res, target
-    proxyBalancer.on "proxyRes", (res) ->
-      console.log('RAW Response from the target', JSON.stringify(res.headers, true, 2))
-    proxyBalancer.listen 9002
+    __proxyRequest = (request, response, machine) ->
+      machine = machine.split ":"
+      options =
+        hostname: machine[0]
+        port    : machine[1]
+        host    : "#{machine[0]}:#{machine[1]}"
+        headers : request.headers
+        path    : request.url
+        method  : request.method
+
+      proxy = http.request options, (res) -> res.pipe response, end: true
+
+      request.pipe proxy, end: true
 
 
 module.exports = ZenProxy
+
+
+###
+This function estimates pi using Monte-Carlo integration
+https://en.wikipedia.org/wiki/Monte_Carlo_integration
+@returns {number}
+###
+__estimatePi = ->
+  n = 10000000
+  inside = 0
+  i = undefined
+  x = undefined
+  y = undefined
+  i = 0
+  while i < n
+    x = Math.random()
+    y = Math.random()
+    inside++  if Math.sqrt(x * x + y * y) <= 1
+    i++
+  4 * inside / n
