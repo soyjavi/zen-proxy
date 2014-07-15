@@ -1,0 +1,31 @@
+port : 8888
+rules:
+  - name    : One
+    strategy: random
+    query   : /random
+    hosts:
+      - address : localhost
+        port    : 1981
+      - address : localhost
+        port    : 1982
+      - address : localhost
+        port    : 1983
+      - address : localhost
+        port    : 1984
+      - address : localhost
+        port    : 1985
+
+  - name    : Two
+    strategy: roundrobin
+    query   : /roundrobin
+    hosts:
+      - address : localhost
+        port    : 1986
+      - address : localhost
+        port    : 1987
+      - address : localhost
+        port    : 1988
+      - address : localhost
+        port    : 1989
+      - address : localhost
+        port    : 1990

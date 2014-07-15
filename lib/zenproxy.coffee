@@ -30,33 +30,45 @@ ZenProxy =
         return
       ).listen port
 
-    # -- TEST.1 -> Machine Balancer (RANDOM) -----------------------------------
+
+    # -- ZENPROXY -------------------------------------
+    queries = {}
+    for rule, index in global.config.rules when rule.query?
+      queries[rule.query] = index
+
     http.createServer((request, response) ->
-      machine = machines[Math.floor Math.random() * (machines.length)]
-      __proxyRequest request, response, machine
-    ).listen 3000
+      index = queries[request.url]
+      if index >= 0
+        rule = global.config.rules[index]
 
-    # -- TEST.2 -> Machine Balancer (ROUND-ROBIN) ------------------------------
-    http.createServer((request, response) ->
-      machine = machines.shift()
-      __proxyRequest request, response, machine
-      machines.push machine
-    ).listen 3001
+        if rule.strategy is "random"
+          host = rule.hosts[Math.floor Math.random() * (rule.hosts.length)]
+        else if rule.strategy is "roundrobin"
+          host = rule.hosts.shift()
+          rule.hosts.push host
 
-    # -- TEST.3 -> Machine Balancer (CPU) --------------------------------------
+        console.log "> #{rule.name} (#{rule.strategy}) >> #{host.address}:#{host.port}"
+        __proxyRequest request, response, host.address, host.port
+
+      else
+        response.writeHead 200, "Content-Type": "text/plain"
+        response.write "ZENproxy"
+        response.end()
+
+    ).listen config.port or 80
 
 
-    __proxyRequest = (request, response, machine) ->
-      machine = machine.split ":"
+    __proxyRequest = (request, response, address, port = 80) ->
       options =
-        hostname: machine[0]
-        port    : machine[1]
-        host    : "#{machine[0]}:#{machine[1]}"
+        hostname: address
+        port    : port
+        host    : "#{address}:#{port}"
         headers : request.headers
         path    : request.url
         method  : request.method
 
-      proxy = http.request options, (res) -> res.pipe response, end: true
+      proxy = http.request options, (res) ->
+        res.pipe response, end: true
 
       request.pipe proxy, end: true
 
