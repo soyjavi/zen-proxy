@@ -22,10 +22,11 @@ ZenProxy =
       port++
       machines.push "localhost:#{port}"
       http.createServer((req, res) ->
-        res.writeHead 200, "Content-Type": "text/plain"
-        res.write "PI: #{__estimatePi()} \n"
-        res.write JSON.stringify(req.headers, true, 2)
-        res.end()
+        setTimeout =>
+          res.writeHead 200, "Content-Type": "text/plain"
+          res.write JSON.stringify(req.headers, true, 2)
+          res.end()
+        , delay = 300
         return
       ).listen port
 
@@ -59,25 +60,4 @@ ZenProxy =
 
       request.pipe proxy, end: true
 
-
 module.exports = ZenProxy
-
-
-###
-This function estimates pi using Monte-Carlo integration
-https://en.wikipedia.org/wiki/Monte_Carlo_integration
-@returns {number}
-###
-__estimatePi = ->
-  n = 10000000
-  inside = 0
-  i = undefined
-  x = undefined
-  y = undefined
-  i = 0
-  while i < n
-    x = Math.random()
-    y = Math.random()
-    inside++  if Math.sqrt(x * x + y * y) <= 1
-    i++
-  4 * inside / n
