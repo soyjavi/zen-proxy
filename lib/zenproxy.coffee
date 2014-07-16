@@ -48,7 +48,7 @@ ZenProxy =
           rule.hosts.push host
 
         console.log "> #{rule.name} (#{rule.strategy}) >> #{host.address}:#{host.port}"
-        __proxyRequest request, response, host.address, host.port
+        __proxyRequest request, response, rule, host.address, host.port
 
       else
         response.writeHead 200, "Content-Type": "text/plain"
@@ -57,18 +57,22 @@ ZenProxy =
 
     ).listen config.port or 80
 
-
-    __proxyRequest = (request, response, address, port = 80) ->
+    __proxyRequest = (request, response, rule, address, port = 80) ->
       options =
         hostname: address
         port    : port
-        host    : "#{address}:#{port}"
         headers : request.headers
         path    : request.url
         method  : request.method
+        agent   : false                 # Turn off socket pooling
 
-      proxy = http.request options, (res) ->
+      now = new Date()
+      proxy = http.request options, (res) =>
+        console.log " - proxygap: #{(new Date() - now)}ms"
         res.pipe response, end: true
+
+      proxy.on "error", (error) ->
+        console.log "ZENproxy (error): #{error}"
 
       request.pipe proxy, end: true
 
