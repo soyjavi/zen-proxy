@@ -68,6 +68,7 @@ ZenProxy =
         method  : request.method
 
       proxy = http.request options, (res) ->
+        response.setHeader key, value for key, value of res.headers
         res.pipe response, end: true
 
       request.pipe proxy, end: true
