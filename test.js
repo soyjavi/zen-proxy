@@ -1,7 +1,7 @@
 var http = require('http');
 var hyperquest = require('hyperquest');
 
-for (var i = 0; i < 10; i++) {
+for (var i = 0; i < 100; i++) {
     // hyperquest('http://localhost:8888/random');
 
     options = {

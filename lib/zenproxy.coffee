@@ -69,6 +69,7 @@ ZenProxy =
       now = new Date()
       proxy = http.request options, (res) =>
         console.log " - proxygap: #{(new Date() - now)}ms"
+        response.setHeader key, value for key, value of res.headers
         res.pipe response, end: true
 
       proxy.on "error", (error) ->
