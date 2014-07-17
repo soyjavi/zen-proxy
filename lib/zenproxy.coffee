@@ -12,7 +12,21 @@ http      = require "http"
 
 ZenProxy =
 
-  run: (callback) ->
+  addHost: (rule_name, host, port) ->
+    for rule in global.config.rules when rule.name is rule_name
+      rule.hosts.push
+        address: host
+        port   : port
+      console.log "New host in #{rule.name}", rule.hosts
+      break
+
+  removeHost: (rule_name, server) ->
+    for rule, index in global.config.rules when rule.name is rule_name
+      rule.hosts.splice(index, 1)
+      console.log "remove host in #{rule.name}", rule.hosts
+      break
+
+  run: ->
     console.log "It's ok from zenproxy"
 
     # -- Random NODEJS servers (from :1981 to :1990) ---------------------------

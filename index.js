@@ -20,4 +20,7 @@ if(CoffeeScript.register) CoffeeScript.register();
 var endpoint_path = path.join(__dirname, 'zenproxy.yml');
 global.config = yaml.safeLoad(fs.readFileSync(endpoint_path, 'utf8'));
 
-return require('./lib/zenproxy').run();
+var zenproxy = require('./lib/zenproxy');
+zenproxy.run()
+setTimeout(function() { zenproxy.addHost("One", "localhost", 1986); }, 500);
+setTimeout(function() { zenproxy.removeHost("One", "localhost", 1981); }, 1000);
