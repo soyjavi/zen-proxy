@@ -29,3 +29,10 @@ rules:
         port    : 1989
       - address : localhost
         port    : 1990
+
+  - name    : Three
+    strategy: roundrobin
+    query   : /regex/prefix-.*/hello-.*
+    hosts:
+      - address : localhost
+        port    : 1987

@@ -47,14 +47,13 @@ ZenProxy =
 
     # -- ZENPROXY -------------------------------------
     queries = {}
-    for rule, index in global.config.rules when rule.query?
-      queries[rule.query] = index
 
     http.createServer((request, response) ->
-      index = queries[request.url]
-      if index >= 0
-        rule = global.config.rules[index]
+      url   = request.url
+      index = queries[url]
+      rule  = if index >= 0 then global.config.rules[index] else __getRule url
 
+      if rule
         if rule.strategy is "random"
           host = rule.hosts[Math.floor Math.random() * (rule.hosts.length)]
         else if rule.strategy is "roundrobin"
@@ -70,6 +69,13 @@ ZenProxy =
         response.end()
 
     ).listen config.port or 80
+
+    __getRule = (url) ->
+      for rule, index in global.config.rules when rule.query?
+        regex = new RegExp rule.query
+        if url.match regex
+          queries[url] = index
+          return rule
 
     __proxyRequest = (request, response, rule, address, port = 80) ->
       options =
