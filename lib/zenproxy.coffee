@@ -27,27 +27,8 @@ ZenProxy =
       break
 
   run: ->
-    console.log "It's ok from zenproxy"
-
-    # -- Random NODEJS servers (from :1981 to :1990) ---------------------------
-    machines = []
-    port = 1980
-    for i in [1..10]
-      port++
-      machines.push "localhost:#{port}"
-      http.createServer((req, res) ->
-        setTimeout =>
-          res.writeHead 200, "Content-Type": "text/plain"
-          res.write JSON.stringify(req.headers, true, 2)
-          res.end()
-        , delay = 300
-        return
-      ).listen port
-
-
-    # -- ZENPROXY -------------------------------------
+    console.log "ZENproxy starting..."
     queries = {}
-
     http.createServer((request, response) ->
       url   = "#{request.headers.host}#{request.url}"
       index = queries[url]
@@ -59,15 +40,12 @@ ZenProxy =
         else if rule.strategy is "roundrobin"
           host = rule.hosts.shift()
           rule.hosts.push host
-
-        console.log "> #{rule.name} (#{rule.strategy}) >> #{host.address}:#{host.port}"
+        console.log "> #{rule.name} (#{rule.strategy}) << #{host.address}:#{host.port}"
         __proxyRequest request, response, rule, host.address, host.port
-
       else
         response.writeHead 200, "Content-Type": "text/plain"
         response.write "ZENproxy"
         response.end()
-
     ).listen config.port or 80
 
     __getRule = (url) ->
@@ -89,7 +67,8 @@ ZenProxy =
 
       now = new Date()
       proxy = http.request options, (res) =>
-        console.log " - proxygap: #{(new Date() - now)}ms"
+        console.log "> #{rule.name} (#{rule.strategy}) >> #{address}:#{port} #{(new Date() - now)}ms"
+
         response.setHeader key, value for key, value of res.headers
         res.pipe response, end: true
 
