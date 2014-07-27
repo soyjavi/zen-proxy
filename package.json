@@ -23,6 +23,9 @@
     "coffee-script" : "*",
     "js-yaml"       : "*"
   },
+  "devDependencies": {
+    "hyperquest" : "*"
+  },
   "main": "./index.js",
   "engines": {
     "node": "*"
