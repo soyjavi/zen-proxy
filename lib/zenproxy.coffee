@@ -49,7 +49,7 @@ ZenProxy =
     queries = {}
 
     http.createServer((request, response) ->
-      url   = request.url
+      url   = "#{request.headers.host}#{request.url}"
       index = queries[url]
       rule  = if index >= 0 then global.config.rules[index] else __getRule url
 
@@ -71,9 +71,10 @@ ZenProxy =
     ).listen config.port or 80
 
     __getRule = (url) ->
-      for rule, index in global.config.rules when rule.query?
-        regex = new RegExp rule.query
-        if url.match regex
+      for rule, index in global.config.rules when rule.domain? and rule.query?
+        port = if global.config.port is 80 then "" else ":#{global.config.port}"
+        regexQuery = new RegExp "#{rule.domain}#{port}#{rule.query}"
+        if url.match regexQuery
           queries[url] = index
           return rule
 

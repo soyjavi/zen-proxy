@@ -2,6 +2,7 @@ port : 8888
 rules:
   - name    : One
     strategy: random
+    domain  : localhost
     query   : /random
     hosts:
       - address : localhost
@@ -17,6 +18,7 @@ rules:
 
   - name    : Two
     strategy: roundrobin
+    domain  : localhost
     query   : /roundrobin
     hosts:
       - address : localhost
@@ -32,6 +34,7 @@ rules:
 
   - name    : Three
     strategy: roundrobin
+    domain  : localhost
     query   : /regex/prefix-.*/hello-.*
     hosts:
       - address : localhost
