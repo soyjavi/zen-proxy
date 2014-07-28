@@ -18,8 +18,19 @@ for (i = _i = 1; _i <= 10; i = ++_i) {
   }).listen(port);
 }
 
-for (var i = 0; i < 5; i++) {
-    hyperquest('http://localhost:8888/random');
-    hyperquest('http://127.0.0.1:8888/roundrobin');
+/* -- Making calls ---------------------------------------------------------- */
+
+var interval_id = setInterval(function(){proxy();}, 2500);
+
+var proxy = function() {
+  for (var i = 0; i < 3; i++) {
+      hyperquest('http://localhost:8888/random');
+      hyperquest('http://127.0.0.1:8888/roundrobin');
+      hyperquest('http://localhost:8888/regex/prefix-' + i + '/hello-' + i);
+  };
+  hyperquest('http://localhost:8888/unknown/url');
 };
+
+proxy();
+
 process.stdout.setMaxListeners(0);

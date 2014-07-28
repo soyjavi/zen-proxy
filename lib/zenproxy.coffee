@@ -8,26 +8,30 @@ YOI
 "use strict"
 
 # Libraries
-http      = require "http"
+http    = require "http"
+colors  = require "colors"
+Table   = require "cli-table"
 
 ZenProxy =
 
-  addHost: (rule_name, host, port) ->
+  addHost: (rule_name, address, port) ->
     for rule in global.config.rules when rule.name is rule_name
       rule.hosts.push
-        address: host
+        address: address
         port   : port
-      console.log "New host in #{rule.name}", rule.hosts
+      @summary "Added " + "#{address}:#{port}".green + " to rule " + "#{rule.name}".green
       break
 
-  removeHost: (rule_name, server) ->
+  removeHost: (rule_name, address, port) ->
     for rule, index in global.config.rules when rule.name is rule_name
-      rule.hosts.splice(index, 1)
-      console.log "remove host in #{rule.name}", rule.hosts
+      for host, index in rule.hosts when host.address is address and host.port is port
+        rule.hosts.splice(index, 1)
+        @summary "Remove " + "#{address}:#{port}".red + " to rule " + "#{rule.name}".red
+        break
       break
 
   run: ->
-    console.log "ZENproxy starting..."
+    @summary "Starting..."
     queries = {}
     http.createServer((request, response) ->
       url   = "#{request.headers.host}#{request.url}"
@@ -40,9 +44,9 @@ ZenProxy =
         else if rule.strategy is "roundrobin"
           host = rule.hosts.shift()
           rule.hosts.push host
-        console.log "> #{rule.name} (#{rule.strategy}) << #{host.address}:#{host.port}"
         __proxyRequest request, response, rule, host.address, host.port
       else
+        console.log "[", "#{request.method}".red, "]", "#{request.headers.host + request.url}".grey
         response.writeHead 200, "Content-Type": "text/plain"
         response.write "ZENproxy"
         response.end()
@@ -67,8 +71,8 @@ ZenProxy =
 
       now = new Date()
       proxy = http.request options, (res) =>
-        console.log "> #{rule.name} (#{rule.strategy}) >> #{address}:#{port} #{(new Date() - now)}ms"
-
+        ms = (new Date() - now)
+        console.log "[", request.method.grey ,"]", "[", "#{ms}ms".green, "]", "#{rule.name + request.url} ->".grey, "#{address}:#{port}"
         response.setHeader key, value for key, value of res.headers
         res.pipe response, end: true
 
@@ -76,5 +80,19 @@ ZenProxy =
         console.log "ZENproxy (error): #{error}"
 
       request.pipe proxy, end: true
+
+
+  summary: (message) ->
+    table = new Table head: ["ZENproxy".green + " v0.07.28".grey + " - #{message}"], colWidths: [80]
+    console.log table.toString()
+    table = new Table
+      head      : ["Rule".grey, "Strategy".grey, "domain".grey, "query".grey, "servers".grey]
+      colWidths : [12, 12, 12, 20, 20]
+
+    for rule in global.config.rules
+      hosts = ""
+      hosts += "#{host.address}:#{host.port}\n" for host in rule.hosts
+      table.push [rule.name, rule.strategy, rule.domain, rule.query, hosts]
+    console.log(table.toString())
 
 module.exports = ZenProxy

@@ -1,6 +1,6 @@
 port : 8888
 rules:
-  - name    : One
+  - name    : sub.domain.com
     strategy: random
     domain  : localhost
     query   : /random
@@ -16,23 +16,23 @@ rules:
       - address : localhost
         port    : 1985
 
-  - name    : Two
+  - name    : domain.com
     strategy: roundrobin
     domain  : 127.0.0.1
     query   : /roundrobin
     hosts:
       - address : localhost
         port    : 1986
-      - address : localhost
+      - address : 127.0.0.1
         port    : 1987
       - address : localhost
         port    : 1988
-      - address : localhost
+      - address : 127.0.0.1
         port    : 1989
       - address : localhost
         port    : 1990
 
-  - name    : Three
+  - name    : dominio.es
     strategy: roundrobin
     domain  : localhost
     query   : /regex/prefix-.*/hello-.*

@@ -22,5 +22,11 @@ global.config = yaml.safeLoad(fs.readFileSync(endpoint_path, 'utf8'));
 
 var zenproxy = require('./lib/zenproxy');
 zenproxy.run()
-setTimeout(function() { zenproxy.addHost("One", "localhost", 1986); }, 500);
-setTimeout(function() { zenproxy.removeHost("One", "localhost", 1981); }, 1000);
+setTimeout(function() {
+  zenproxy.addHost("One", "localhost", 1986);
+  zenproxy.addHost("One", "localhost", 1987);
+}, 1000);
+setTimeout(function() {
+  zenproxy.removeHost("Two", "127.0.0.1", 1987);
+  zenproxy.removeHost("Two", "localhost", 1986);
+}, 2000);
