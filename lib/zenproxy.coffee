@@ -1,10 +1,3 @@
-###
-YOI
-@description  Easy (but powerful) NodeJS Server
-@author       Javi Jimenez Villar <javi@tapquo.org> || @soyjavi
-
-@namespace    lib/zenproxy
-###
 "use strict"
 
 # Libraries
@@ -81,9 +74,8 @@ ZenProxy =
 
       request.pipe proxy, end: true
 
-
   summary: (message) ->
-    table = new Table head: ["ZENproxy".green + " v0.07.28".grey + " - #{message}"], colWidths: [80]
+    table = new Table head: ["ZENproxy".green + " v0.08.12".grey + " - #{message}"], colWidths: [80]
     console.log table.toString()
     table = new Table
       head      : ["Rule".grey, "Strategy".grey, "domain".grey, "query".grey, "servers".grey]
