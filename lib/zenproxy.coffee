@@ -65,7 +65,10 @@ ZenProxy =
       now = new Date()
       proxy = http.request options, (res) =>
         ms = (new Date() - now)
-        console.log "[", request.method.grey ,"]", "[", "#{ms}ms".green, "]", "#{rule.name + request.url} ->".grey, "#{address}:#{port}"
+        console.log "[", request.method.grey, "#{res.statusCode} ]"
+                  , "[", "#{ms}ms".green, "]"
+                  , "#{rule.name + request.url} ->".grey, "#{address}:#{port}"
+        response.statusCode = res.statusCode
         response.setHeader key, value for key, value of res.headers
         res.pipe response, end: true
 
@@ -75,7 +78,7 @@ ZenProxy =
       request.pipe proxy, end: true
 
   summary: (message) ->
-    table = new Table head: ["ZENproxy".green + " v0.08.12".grey + " - #{message}"], colWidths: [80]
+    table = new Table head: ["ZENproxy".green + " v0.08.27".grey + " - #{message}"], colWidths: [80]
     console.log table.toString()
     table = new Table
       head      : ["Rule".grey, "Strategy".grey, "domain".grey, "query".grey, "servers".grey]
