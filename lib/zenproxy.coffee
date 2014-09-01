@@ -1,9 +1,10 @@
 "use strict"
 
 # Libraries
-http    = require "http"
-colors  = require "colors"
-Table   = require "cli-table"
+http          = require "http"
+colors        = require "colors"
+Table         = require "cli-table"
+childProcess  = require "child_process"
 
 ZenProxy =
 
@@ -25,6 +26,8 @@ ZenProxy =
 
   run: ->
     @summary "Starting..."
+    do @blockPorts
+
     queries = {}
     http.createServer((request, response) ->
       url   = "#{request.headers.host}#{request.url}"
@@ -76,6 +79,11 @@ ZenProxy =
         console.log "ZENproxy (error): #{error}"
 
       request.pipe proxy, end: true
+
+  blockPorts: ->
+    for rule in global.config.rules
+      for host in rule.hosts when host.block is true
+        childProcess.exec "iptables -A INPUT -p tcp --dport #{host.port} -j DROP"
 
   summary: (message) ->
     table = new Table head: ["ZENproxy".green + " v0.08.27".grey + " - #{message}"], colWidths: [80]
