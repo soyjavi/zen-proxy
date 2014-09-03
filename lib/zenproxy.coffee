@@ -57,11 +57,9 @@ ZenProxy =
           return rule
 
     __proxyRequest = (request, response, rule, address, port = 80) ->
-      host = request.headers.host.split(".")[0]
-      if rule.subdomain is "*"
-        request.url = "/" + host
-      else if rule.subdomain and host is rule.subdomain
-        request.url = "/" + rule.subdomain
+      part = request.headers.host.split(".")[0]
+      if rule.subdomain and (rule.subdomain is "*" or rule.subdomain is part)
+        request.url = "/" + part
 
       options =
         hostname: address
@@ -92,7 +90,7 @@ ZenProxy =
         childProcess.exec "iptables -A INPUT -p tcp --dport #{host.port} -j DROP"
 
   summary: (message) ->
-    table = new Table head: ["ZENproxy".green + " v0.08.27".grey + " - #{message}"], colWidths: [80]
+    table = new Table head: ["ZENproxy".green + " v0.09.03".grey + " - #{message}"], colWidths: [80]
     console.log table.toString()
     table = new Table
       head      : ["Rule".grey, "Strategy".grey, "domain".grey, "query".grey, "servers".grey]

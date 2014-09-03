@@ -1,6 +1,6 @@
 {
   "name": "zenproxy",
-  "version": "0.08.27",
+  "version": "0.09.03",
   "description": "Easy (but powerful) NodeJS Proxy/Balancer",
   "homepage": "http://twitter.com/soyjavi",
   "keywords": [
@@ -17,6 +17,10 @@
     {
       "name": "David Rey",
       "email": "david.rey.acosta@gmail.com"
+    },
+    {
+      "name": "Catalina Oyaneder",
+      "email": "cat2608@gmail.com"
     }
   ],
   "dependencies": {
