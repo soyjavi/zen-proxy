@@ -51,12 +51,18 @@ ZenProxy =
     __getRule = (url) ->
       for rule, index in global.config.rules when rule.domain? and rule.query?
         port = if global.config.port is 80 then "" else ":#{global.config.port}"
+        subdomain = rule.subdomain if rule.subdomain
         regexQuery = new RegExp "#{rule.domain}#{port}#{rule.query}"
         if url.match regexQuery
           queries[url] = index
           return rule
 
     __proxyRequest = (request, response, rule, address, port = 80) ->
+      if rule.subdomain is "*"
+        request.url = "/" + request.headers.host.split(".")[0]
+      else if rule.subdomain and request.headers.host.split(".")[0] is rule.subdomain
+        request.url = "/" + rule.subdomain
+
       options =
         hostname: address
         port    : port
