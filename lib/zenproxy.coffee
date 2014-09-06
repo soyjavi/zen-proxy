@@ -35,18 +35,34 @@ ZenProxy =
       rule  = if index >= 0 then global.config.rules[index] else __getRule url
 
       if rule
-        if rule.strategy is "random"
-          host = rule.hosts[Math.floor Math.random() * (rule.hosts.length)]
-        else if rule.strategy is "roundrobin"
-          host = rule.hosts.shift()
-          rule.hosts.push host
-        __proxyRequest request, response, rule, host.address, host.port
+        # Need
+        statics = false
+        if rule.statics?
+          for policy in rule.statics when request.url is rule.query + policy.url
+            console.log policy
+            statics = true
+            response.writeHead 200, "Content-Type": "text/plain"
+            response.write "ZENproxy Static"
+            response.end()
+            break
+
+        unless statics
+          if rule.strategy is "random"
+            host = rule.hosts[Math.floor Math.random() * (rule.hosts.length)]
+          else if rule.strategy is "roundrobin"
+            host = rule.hosts.shift()
+            rule.hosts.push host
+          __proxyRequest request, response, rule, host.address, host.port
       else
         console.log "[", "#{request.method}".red, "]", "#{request.headers.host + request.url}".grey
-        response.writeHead 200, "Content-Type": "text/plain"
-        response.write "ZENproxy"
+        response.writeHead 200, "Content-Type": "text/html"
+        response.write "<h1>ZENproxy</h1>"
         response.end()
     ).listen config.port or 80
+
+    __static = (rule, policy) ->
+
+    __proxy = (request, response, rule) ->
 
     __getRule = (url) ->
       for rule, index in global.config.rules when rule.domain? and rule.query?
@@ -90,7 +106,7 @@ ZenProxy =
         childProcess.exec "iptables -A INPUT -p tcp --dport #{host.port} -j DROP"
 
   summary: (message) ->
-    table = new Table head: ["ZENproxy".green + " v0.09.03".grey + " - #{message}"], colWidths: [80]
+    table = new Table head: ["ZENproxy".green + " v0.09.06".grey + " - #{message}"], colWidths: [80]
     console.log table.toString()
     table = new Table
       head      : ["Rule".grey, "Strategy".grey, "domain".grey, "query".grey, "servers".grey]
