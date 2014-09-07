@@ -112,7 +112,7 @@ ZenProxy =
         childProcess.exec "iptables -A INPUT -p tcp --dport #{host.port} -j DROP"
 
   summary: (message) ->
-    table = new Table head: ["ZENproxy".green + " v0.09.08".grey + " - #{message}"], colWidths: [80]
+    table = new Table head: ["ZENproxy".green + " v0.09.07".grey + " - #{message}"], colWidths: [80]
     console.log table.toString()
     table = new Table
       head      : ["Rule".grey, "Strategy".grey, "domain".grey, "query".grey, "servers".grey]
