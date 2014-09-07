@@ -1,10 +1,13 @@
 "use strict"
 
 # Libraries
-http          = require "http"
-colors        = require "colors"
-Table         = require "cli-table"
 childProcess  = require "child_process"
+colors        = require "colors"
+http          = require "http"
+Table         = require "cli-table"
+
+fileServe     = require "./zenproxy.fileserve"
+PATH          = __dirname + "/../../../.."
 
 ZenProxy =
 
@@ -35,18 +38,37 @@ ZenProxy =
       rule  = if index >= 0 then global.config.rules[index] else __getRule url
 
       if rule
-        if rule.strategy is "random"
-          host = rule.hosts[Math.floor Math.random() * (rule.hosts.length)]
-        else if rule.strategy is "roundrobin"
-          host = rule.hosts.shift()
-          rule.hosts.push host
-        __proxyRequest request, response, rule, host.address, host.port
+        # Need
+        statics = false
+        if rule.statics?
+          statics = __serveStatic request, response, rule
+
+        unless statics
+          if rule.strategy is "random"
+            host = rule.hosts[Math.floor Math.random() * (rule.hosts.length)]
+          else if rule.strategy is "roundrobin"
+            host = rule.hosts.shift()
+            rule.hosts.push host
+          __proxyRequest request, response, rule, host.address, host.port
       else
         console.log "[", "#{request.method}".red, "]", "#{request.headers.host + request.url}".grey
-        response.writeHead 200, "Content-Type": "text/plain"
-        response.write "ZENproxy"
+        response.writeHead 200, "Content-Type": "text/html"
+        response.write "<h1>ZENproxy</h1>"
         response.end()
     ).listen config.port or 80
+
+    __serveStatic = (request, response, rule) ->
+      served = false
+      for policy in rule.statics #when request.url is rule.query + policy.url
+        folder_query = "#{rule.query}#{policy.url}"
+        if request.url.lastIndexOf(folder_query) is 0
+          statics = true
+          resource = request.url.replace(folder_query, "")
+          fileServe response, "#{PATH}#{policy.folder}/#{resource}", policy.maxage
+          break
+      served
+
+    __proxy = (request, response, rule) ->
 
     __getRule = (url) ->
       for rule, index in global.config.rules when rule.domain? and rule.query?
@@ -90,7 +112,7 @@ ZenProxy =
         childProcess.exec "iptables -A INPUT -p tcp --dport #{host.port} -j DROP"
 
   summary: (message) ->
-    table = new Table head: ["ZENproxy".green + " v0.09.03".grey + " - #{message}"], colWidths: [80]
+    table = new Table head: ["ZENproxy".green + " v0.09.08".grey + " - #{message}"], colWidths: [80]
     console.log table.toString()
     table = new Table
       head      : ["Rule".grey, "Strategy".grey, "domain".grey, "query".grey, "servers".grey]
