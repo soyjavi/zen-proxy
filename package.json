@@ -1,6 +1,6 @@
 {
   "name": "zenproxy",
-  "version": "0.09.07",
+  "version": "0.09.09",
   "description": "Easy (but powerful) NodeJS Proxy/Balancer",
   "homepage": "http://twitter.com/soyjavi",
   "keywords": [

@@ -3,7 +3,9 @@
 # Libraries
 childProcess  = require "child_process"
 colors        = require "colors"
+fs            = require "fs"
 http          = require "http"
+https         = require "https"
 Table         = require "cli-table"
 
 fileServe     = require "./zenproxy.fileserve"
@@ -30,15 +32,30 @@ ZenProxy =
   run: ->
     @summary "Starting..."
     do @blockPorts
-
     queries = {}
-    http.createServer((request, response) ->
+
+    if global.config.http
+      global.config.http = global.config.http or 80
+      http.createServer((request, response) ->
+        __zen request, response
+      ).listen global.config.http
+
+    if global.config.https
+      global.config.https = global.config.https or 443
+      certificates = __dirname + "/../../../certificates/"
+      options =
+        key   : fs.readFileSync("#{certificates}key.pem")
+        cert  : fs.readFileSync("#{certificates}cert.pem")
+      https.createServer(options, (request, response) ->
+        __zen request, response
+      ).listen global.config.https
+
+    __zen = (request, response) ->
       url   = "#{request.headers.host}#{request.url}"
       index = queries[url]
       rule  = if index >= 0 then global.config.rules[index] else __getRule url
 
       if rule
-        # Need
         statics = false
         if rule.statics?
           statics = __serveStatic request, response, rule
@@ -55,7 +72,6 @@ ZenProxy =
         response.writeHead 200, "Content-Type": "text/html"
         response.write "<h1>ZENproxy</h1>"
         response.end()
-    ).listen config.port or 80
 
     __serveStatic = (request, response, rule) ->
       served = false
@@ -68,11 +84,11 @@ ZenProxy =
           break
       served
 
-    __proxy = (request, response, rule) ->
-
     __getRule = (url) ->
       for rule, index in global.config.rules when rule.domain? and rule.query?
-        port = if global.config.port is 80 then "" else ":#{global.config.port}"
+        port = if global.config.http is 80 then "" else ":#{global.config.http}"
+        if rule.https
+          port = if global.config.https is 443 then "" else ":#{global.config.https}"
         regexQuery = new RegExp "#{rule.domain}#{port}#{rule.query}"
         if url.match regexQuery
           queries[url] = index
@@ -89,7 +105,7 @@ ZenProxy =
         headers : request.headers
         path    : request.url
         method  : request.method
-        agent   : false                 # Turn off socket pooling
+        agent   : false # Turn off socket pooling
 
       now = new Date()
       proxy = http.request options, (res) =>
@@ -112,7 +128,7 @@ ZenProxy =
         childProcess.exec "iptables -A INPUT -p tcp --dport #{host.port} -j DROP"
 
   summary: (message) ->
-    table = new Table head: ["ZENproxy".green + " v0.09.07".grey + " - #{message}"], colWidths: [80]
+    table = new Table head: ["ZENproxy".green + " v0.09.09".grey + " - #{message}"], colWidths: [80]
     console.log table.toString()
     table = new Table
       head      : ["Rule".grey, "Strategy".grey, "domain".grey, "query".grey, "servers".grey]
