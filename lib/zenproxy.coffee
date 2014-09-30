@@ -6,59 +6,26 @@ colors        = require "colors"
 fs            = require "fs"
 http          = require "http"
 https         = require "https"
-Table         = require "cli-table"
+url           = require "url"
 
+ZENproxy      = require "./zenproxy.config"
 fileServe     = require "./zenproxy.fileserve"
-PATH          = __dirname + "/../../../.."
 
-ZenProxy =
+module.exports =
 
-  addHost: (rule_name, address, port) ->
-    for rule in global.config.rules when rule.name is rule_name
-      rule.hosts.push
-        address: address
-        port   : port
-      @summary "Added " + "#{address}:#{port}".green + " to rule " + "#{rule.name}".green
-      break
-
-  removeHost: (rule_name, address, port) ->
-    for rule, index in global.config.rules when rule.name is rule_name
-      for host, index in rule.hosts when host.address is address and host.port is port
-        rule.hosts.splice(index, 1)
-        @summary "Remove " + "#{address}:#{port}".red + " to rule " + "#{rule.name}".red
-        break
-      break
-
-  run: ->
-    @summary "Starting..."
+  start: ->
     do @blockPorts
     queries = {}
 
-    if global.config.http
-      global.config.http = global.config.http or 80
-      http.createServer((request, response) ->
-        __zen request, response
-      ).listen global.config.http
-
-    if global.config.https
-      global.config.https = global.config.https or 443
-      certificates = __dirname + "/../../../certificates/"
-      options =
-        key   : fs.readFileSync("#{certificates}key.pem")
-        cert  : fs.readFileSync("#{certificates}cert.pem")
-      https.createServer(options, (request, response) ->
-        __zen request, response
-      ).listen global.config.https
-
-    __zen = (request, response) ->
+    proxy = __proxy()
+    proxy.on "request", (request, response) ->
       url   = "#{request.headers.host}#{request.url}"
       index = queries[url]
-      rule  = if index >= 0 then global.config.rules[index] else __getRule url
+      rule  = if index >= 0 then ZENproxy.rules[index] else __getRule url
 
       if rule
         statics = false
-        if rule.statics?
-          statics = __serveStatic request, response, rule
+        (statics = __serveStatic request, response, rule)  if rule.statics?
 
         unless statics
           if rule.strategy is "random"
@@ -68,27 +35,29 @@ ZenProxy =
             rule.hosts.push host
           __proxyRequest request, response, rule, host.address, host.port
       else
-        console.log "[", "#{request.method}".red, "]", "#{request.headers.host + request.url}".grey
+        console.log " ⇤ ".magenta, "#{request.method} #{request.headers.host}#{request.url}".grey
         response.writeHead 200, "Content-Type": "text/html"
-        response.write "<h1>ZENproxy</h1>"
-        response.end()
+        response.end "<h1>ZENproxy</h1>"
+
+    proxy.timeout = ZENproxy.timeout or CONST.TIMEOUT
+    proxy.listen ZENproxy.port
 
     __serveStatic = (request, response, rule) ->
       served = false
       for policy in rule.statics #when request.url is rule.query + policy.url
         folder_query = "#{rule.query}#{policy.url}"
         if request.url.lastIndexOf(folder_query) is 0
-          statics = true
+          served = true
           resource = request.url.replace(folder_query, "")
-          fileServe response, "#{PATH}#{policy.folder}/#{resource}", policy.maxage
+          fileServe response, "#{policy.folder}/#{resource}", policy.maxage
           break
       served
 
     __getRule = (url) ->
-      for rule, index in global.config.rules when rule.domain? and rule.query?
-        port = if global.config.http is 80 then "" else ":#{global.config.http}"
+      for rule, index in ZENproxy.rules when rule.domain? and rule.query?
+        port = if ZENproxy.port is 80 then "" else ":#{ZENproxy.port}"
         if rule.https
-          port = if global.config.https is 443 then "" else ":#{global.config.https}"
+          port = if ZENproxy.port is 443 then "" else ":#{ZENproxy.port}"
         regexQuery = new RegExp "#{rule.domain}#{port}#{rule.query}"
         if url.match regexQuery
           queries[url] = index
@@ -109,10 +78,10 @@ ZenProxy =
 
       now = new Date()
       proxy = http.request options, (res) =>
-        ms = (new Date() - now)
-        console.log "[", request.method.grey, "#{res.statusCode} ]"
-                  , "[", "#{ms}ms".green, "]"
-                  , "#{rule.name + request.url} ->".grey, "#{address}:#{port}"
+        latence = (new Date() - now)
+        console.log " ⇤ ".cyan, request.method.grey, "#{rule.name}#{request.url}",
+          "↹ #{res.statusCode}".cyan, "#{latence}ms",
+          "⇥ ".cyan, "#{address}:#{port}".grey
         response.statusCode = res.statusCode
         response.setHeader key, value for key, value of res.headers
         res.pipe response, end: true
@@ -122,22 +91,31 @@ ZenProxy =
 
       request.pipe proxy, end: true
 
+  addHost: (rule_name, address, port) ->
+    for rule in ZENproxy.rules when rule.name is rule_name
+      rule.hosts.push
+        address: address
+        port   : port
+      break
+
+  removeHost: (rule_name, address, port) ->
+    for rule, index in ZENproxy.rules when rule.name is rule_name
+      for host, index in rule.hosts when host.address is address and host.port is port
+        rule.hosts.splice(index, 1)
+        break
+      break
+
   blockPorts: ->
-    for rule in global.config.rules
+    for rule in ZENproxy.rules
       for host in rule.hosts when host.block is true
         childProcess.exec "iptables -A INPUT -p tcp --dport #{host.port} -j DROP"
 
-  summary: (message) ->
-    table = new Table head: ["ZENproxy".green + " v0.09.09".grey + " - #{message}"], colWidths: [80]
-    console.log table.toString()
-    table = new Table
-      head      : ["Rule".grey, "Strategy".grey, "domain".grey, "query".grey, "servers".grey]
-      colWidths : [12, 12, 12, 20, 20]
-
-    for rule in global.config.rules
-      hosts = ""
-      hosts += "#{host.address}:#{host.port}\n" for host in rule.hosts
-      table.push [rule.name, rule.strategy, rule.domain, rule.query, hosts]
-    console.log(table.toString())
-
-module.exports = ZenProxy
+# -- Private methods -----------------------------------------------------------
+__proxy = ->
+  if ZENproxy.protocol is "https"
+    certificates = __dirname + "/../../../certificates/"
+    https.createServer
+      key   : fs.readFileSync("#{certificates}key.pem")
+      cert  : fs.readFileSync("#{certificates}cert.pem")
+  else
+    http.createServer()

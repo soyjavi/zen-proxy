@@ -1,6 +1,6 @@
 {
   "name": "zenproxy",
-  "version": "0.09.09",
+  "version": "0.10.01",
   "description": "Easy (but powerful) NodeJS Proxy/Balancer",
   "homepage": "http://twitter.com/soyjavi",
   "keywords": [
@@ -26,13 +26,10 @@
   "dependencies": {
     "coffee-script" : "*",
     "js-yaml"       : "*",
-    "colors"        : "*",
-    "cli-table"     : "*"
+    "colors"        : "*"
   },
   "main": "./index.js",
   "engines": {
     "node": "*"
-  },
-  "readme": "# ZEN-proxy\n## Easy (but powerful) NodeJS Proxy/Balancer\n",
-  "readmeFilename": "README.md"
+  }
 }
