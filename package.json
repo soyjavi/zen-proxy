@@ -1,6 +1,6 @@
 {
   "name": "zenproxy",
-  "version": "0.10.01",
+  "version": "0.10.3",
   "description": "Easy (but powerful) NodeJS Proxy/Balancer",
   "homepage": "http://twitter.com/soyjavi",
   "keywords": [
@@ -24,12 +24,16 @@
     }
   ],
   "dependencies": {
-    "coffee-script" : "*",
-    "js-yaml"       : "*",
-    "colors"        : "*"
+    "coffee-script": "*",
+    "js-yaml": "*",
+    "colors": "*"
   },
   "main": "./index.js",
   "engines": {
     "node": "*"
-  }
+  },
+  "readme": "ZENproxy\n========\n###  NodeJS Proxy/Balancer based on http-proxy\n\n\n#### Captures with current development state\n\n**ZENproxy start status**\n![image](http://cl.ly/image/2w2M2X3O3L10/zenproxy.summary.png)\n\n\n**ZENproxy logging example**\n![image](http://cl.ly/image/1A0D371f1t3T/zenproxy.log.png)",
+  "readmeFilename": "README.md",
+  "_id": "zenproxy@0.10.1",
+  "_from": "zenproxy@*"
 }

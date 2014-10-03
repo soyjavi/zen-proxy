@@ -39,7 +39,7 @@ module.exports =
         response.writeHead 200, "Content-Type": "text/html"
         response.end "<h1>ZENproxy</h1>"
 
-    proxy.timeout = ZENproxy.timeout or CONST.TIMEOUT
+    proxy.timeout = ZENproxy.timeout if ZENproxy.timeout
     proxy.listen ZENproxy.port
 
     __serveStatic = (request, response, rule) ->

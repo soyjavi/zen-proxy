@@ -6,7 +6,7 @@ node_package  = require "../package.json"
 path          = require "path"
 
 module.exports = do ->
-  file = path.join __dirname, "../../../#{process.argv[2] or 'zenproxy'}.yml"
+  file = path.join __dirname, "../../../#{process.argv[2] or 'zen.proxy'}.yml"
   ZENproxy = yaml.safeLoad fs.readFileSync(file, "utf8")
 
   # -- ZEN output ------------------------------------------------------------
