@@ -28,6 +28,7 @@ module.exports =
         (statics = __serveStatic request, response, rule)  if rule.statics?
 
         unless statics
+          rule.strategy = "random" unless rule.strategy?
           if rule.strategy is "random"
             host = rule.hosts[Math.floor Math.random() * (rule.hosts.length)]
           else if rule.strategy is "roundrobin"
