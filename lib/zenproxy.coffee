@@ -4,6 +4,7 @@
 childProcess  = require "child_process"
 colors        = require "colors"
 fs            = require "fs"
+path          = require "path"
 http          = require "http"
 https         = require "https"
 url           = require "url"
@@ -46,11 +47,11 @@ module.exports =
     __serveStatic = (request, response, rule) ->
       served = false
       for policy in rule.statics #when request.url is rule.query + policy.url
-        folder_query = "#{rule.query}#{policy.url}"
+        folder_query = path.join rule.query.toString(), policy.url.toString()
         if request.url.lastIndexOf(folder_query) is 0
           served = true
           resource = request.url.replace(folder_query, "")
-          fileServe response, "#{policy.folder}/#{resource}", policy.maxage
+          fileServe response, "#{policy.folder}#{resource}", policy.maxage
           break
       served
 

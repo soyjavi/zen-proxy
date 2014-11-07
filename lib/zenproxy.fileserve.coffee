@@ -4,7 +4,6 @@ fs            = require "fs"
 path          = require 'path'
 
 module.exports = (response, url, maxage = 0) ->
-  url = "#{__dirname}/../../../#{url}"
   is_valid = false
   if fs.existsSync(url) and stat = fs.statSync(url)
     is_valid = true if stat?.isFile()
