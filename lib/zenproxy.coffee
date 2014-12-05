@@ -117,7 +117,7 @@ __proxy = ->
   if ZENproxy.protocol is "https"
     certificates = __dirname + "/../../../certificates/"
     https.createServer
-      key   : fs.readFileSync("#{certificates}key.pem")
-      cert  : fs.readFileSync("#{certificates}cert.pem")
+      cert  : fs.readFileSync("#{certificates}#{ZENproxy.cert}")
+      key   : fs.readFileSync("#{certificates}#{ZENproxy.key}")
   else
     http.createServer()
