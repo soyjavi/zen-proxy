@@ -35,7 +35,10 @@ module.exports =
           else if rule.strategy is "roundrobin"
             host = rule.hosts.shift()
             rule.hosts.push host
-          __proxyRequest request, response, rule, host.address, host.port
+          if rule.redirect
+            __redirect request, response, rule, host.address, host.port
+          else
+            __request request, response, rule, host.address, host.port
       else
         console.log " ⇤ ".magenta, "#{request.method} #{request.headers.host}#{request.url}".grey
         response.writeHead 200, "Content-Type": "text/html"
@@ -43,6 +46,7 @@ module.exports =
 
     proxy.timeout = ZENproxy.timeout if ZENproxy.timeout
     proxy.listen ZENproxy.port
+
 
     __serveStatic = (request, response, rule) ->
       served = false
@@ -55,6 +59,7 @@ module.exports =
           break
       served
 
+
     __getRule = (url) ->
       for rule, index in ZENproxy.rules when rule.domain? and rule.query?
         port = if ZENproxy.port is 80 then "" else ":#{ZENproxy.port}"
@@ -65,7 +70,8 @@ module.exports =
           queries[url] = index
           return rule
 
-    __proxyRequest = (request, response, rule, address, port = 80) ->
+
+    __request = (request, response, rule, address, port = 80) ->
       part = request.headers.host.split(".")[0]
       if rule.subdomain and (rule.subdomain is "*" or rule.subdomain is part)
         request.url = "/" + part
@@ -87,11 +93,17 @@ module.exports =
         response.statusCode = res.statusCode
         response.setHeader key, value for key, value of res.headers
         res.pipe response, end: true
-
-      proxy.on "error", (error) ->
-        console.log "ZENproxy (error): #{error}"
-
+      proxy.on "error", (error) -> console.log "ZENproxy (error): #{error}"
       request.pipe proxy, end: true
+
+
+    __redirect = (request, response, rule, address, port = 80) ->
+      console.log " ⇤ ".cyan, request.method.grey, "#{rule.name}#{request.url}",
+          "↹ redirect".cyan,
+          "⇥ ".cyan, "#{address}:#{port}".grey
+      response.writeHead 301, Location: address
+      response.end()
+
 
   addHost: (rule_name, address, port) ->
     for rule in ZENproxy.rules when rule.name is rule_name
@@ -100,12 +112,14 @@ module.exports =
         port   : port
       break
 
+
   removeHost: (rule_name, address, port) ->
     for rule, index in ZENproxy.rules when rule.name is rule_name
       for host, index in rule.hosts when host.address is address and host.port is port
         rule.hosts.splice(index, 1)
         break
       break
+
 
   blockPorts: ->
     for rule in ZENproxy.rules
