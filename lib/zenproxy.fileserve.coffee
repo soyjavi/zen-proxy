@@ -162,3 +162,7 @@ MIME =
   xwd   : "image/x-xwindowdump"
   xyz   : "chemical/x-pdb"
   zip   : "application/zip"
+
+# -- Private methods -----------------------------------------------------------
+__time = (value) -> (new Date(value)).getTime()
+
