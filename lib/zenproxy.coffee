@@ -55,7 +55,7 @@ module.exports =
         if request.url.lastIndexOf(folder_query) is 0
           served = true
           resource = request.url.replace(folder_query, "")
-          fileServe response, "#{policy.folder}#{resource}", policy.maxage
+          fileServe request, response, "#{policy.folder}#{resource}", policy.maxage
           break
       served
 
