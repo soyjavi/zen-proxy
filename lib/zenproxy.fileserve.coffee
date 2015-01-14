@@ -9,18 +9,20 @@ module.exports = (request, response, url, maxage = 0) ->
     is_valid = true if stat?.isFile()
 
   if is_valid
-    extension = path.extname(url)?.slice(1) or "html"
     last_modified = fs.statSync(url).mtime
     cache_modified = request.headers["if-modified-since"]
+    headers =
+      "Content-Type"  : MIME[path.extname(url)?.slice(1) or "html"]
+      "Content-Length": stat.size
+      "Cache-Control" : "max-age=#{maxage.toString()}"
+      "Last-Modified" : last_modified
+
     if cache_modified? and __time(last_modified) is __time(cache_modified)
-      response.end undefined, 304, MIME[extension]
+      response.writeHead 304, headers
+      response.end()
     else
       fs.readFile url, (error, value) ->
-        response.writeHead 200,
-          "Content-Type"  : MIME[extension]
-          "Content-Length": stat.size
-          "Cache-Control" : "max-age=#{maxage.toString()}"
-          "Last-Modified" : last_modified
+        response.writeHead 200, headers
         response.end value
   else
     response.writeHead 200, "Content-Type": "text/html"
