@@ -65,8 +65,8 @@ module.exports =
         port = if ZENproxy.port is 80 then "" else ":#{ZENproxy.port}"
         if rule.https
           port = if ZENproxy.port is 443 then "" else ":#{ZENproxy.port}"
-        regexQuery = new RegExp "#{rule.domain}#{port}#{rule.query}"
-        if url.match regexQuery
+        regexQuery = new RegExp "#{rule.query}"
+        if url.split("/")[1].match(regexQuery) isnt null
           queries[url] = index
           return rule
 
