@@ -45,7 +45,7 @@ incluyendo esta nueva dependencia:
   "version"         : "1.0.0",
   "devDependencies" : {
     "zenproxy" : "^1.1.19" },
-  "scripts"         : {"start": "node zen.proxy.js zen"},
+  "scripts"         : {"start": "node zen.proxy zen.proxy"},
   "engines"         : {"node": "*"}
 }
 ```
