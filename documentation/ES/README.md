@@ -8,7 +8,7 @@ proxy corriendo sobre la plataforma de NodeJS te recomendamos que utilices
 ZENproxy que, al igual que [ZENserver][3], su premisa es la sencillez y el
 rendimiento. A diferencia con este último, no necesitaremos programar ninguna
 linea de código puesto que toda la lógica estará definida en el fichero de
-configuración `zen.yml`
+configuración `zen.proxy.yml`.
 
 [1]: <http://nginx.org/>
 
@@ -24,14 +24,14 @@ configuración `zen.yml`
 Para instalar una nueva instancia de ZENproxy únicamente tienes que ejecutar el
 comando:
 
-```
+```bash
 npm install zenproxy --save-dev
 ```
 
-El siguiente paso es crear el fichero zen.yml que contendrá la configuracion del
-proxy y el fichero zen.js con el siguiente contenido:
+El siguiente paso es crear el fichero zen.proxy.yml que contendrá la configuracion del
+proxy y el fichero zen.proxy.js con el siguiente contenido:
 
-```
+```js
 "use strict"
 require('zenproxy').start();
 ```
@@ -39,13 +39,13 @@ require('zenproxy').start();
 Otra manera, algo más rudimentaria, es modificar el fichero `package.json`
 incluyendo esta nueva dependencia:
 
-```
+```json
 {
   "name"            : "zen-proxy-instance",
   "version"         : "1.0.0",
-  "dependencies": {
-    "zenproxy"     : "*" },
-  "scripts"         : {"start": "node zen.js zen"},
+  "devDependencies" : {
+    "zenproxy" : "^1.1.19" },
+  "scripts"         : {"start": "node zen.proxy.js zen"},
   "engines"         : {"node": "*"}
 }
 ```
@@ -54,8 +54,8 @@ incluyendo esta nueva dependencia:
 
 El proxy se ejecua mediante el siguiente comando:
 
-```
-$ node zen.js zen
+```bash
+  node zen.proxy zen.proxy
 ```
 
 O en su defecto, el nombre del fichero *.js* y el fichero *.yml* que hayas
@@ -68,12 +68,12 @@ cobra una gran importancia a la hora de configurar el proxy y balancer. Vamos a
 ir analizando cada una de las opciones que nos permite establecer el fichero
 `zen.yml`:
 
-```
+```yaml
 protocol: http # or https
 host    : localhost
 port    : 8888
 timezone: Europe/Amsterdam
-timeout : 2000 # ms
+timeout : 60000 # ms
 ```
 
 Esta sección te permite establecer la configuración general de tu ZENproxy; el
@@ -90,7 +90,7 @@ nuestro proxy. Para ello utilizaremos crearemos un atributo `rules` en nuestro
 fichero `zen.yml` e iremos incluyendo cada una de ellas. Comencemos con nuestra
 primera regla:
 
-```
+```yaml
 rules:
   - name    : mydomain
     domain  : domain.com
@@ -114,7 +114,7 @@ uno de sus atributos:
 -   **hosts**: Servidor (o servidores) a los que tiene que acceder cuando se
     ejecute la regla.
 
-### 2.1 Estrategia de balanceo
+### 2.2 Estrategia de balanceo
 
 Como ves es muy sencillo, y habrás podido deducir que en el atributo **hosts**
 si estableces más de un servidor ZENproxy actuará automáticamente como un
