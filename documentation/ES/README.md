@@ -221,17 +221,17 @@ rules:
 
 Por último vamos a aprender como crear un balanceador de recursos, sigue siendo
 igual de sencillo. Creamos una nueva nueva regla la cual controlará la url
-*http://127.0.0.1/files*:
+*http://mydomain.com/files*:
 
 ```
   - name    : statics
-    domain  : 127.0.0.1
+    domain  : mydomain.com
     query   : /files
     strategy: roundrobin
     hosts:
       - address : localhost
         port    : 1986
-      - address : 127.0.0.1
+      - address : mydomain.com
         port    : 1987
     statics:
       - url     : /css
@@ -245,9 +245,9 @@ igual de sencillo. Creamos una nueva nueva regla la cual controlará la url
 ```
 
 Como vemos, cuando se ejecute la regla responderán las máquinas *localhost:1986*
-y *127.0.0.1:1987* por medio de la estrategia *RoundRobin*. En el caso de los
-ficheros estáticos, cada vez que se acceda a *http://127.0.0.1/files/css* se
-servirán los archivos contenidos en la ruta */assets/stylesheets* del directorio
+y *mydomain.com:1987* por medio de la estrategia *RoundRobin*. En el caso de los
+ficheros estáticos, cada vez que se acceda a *http://mydomain.com/files/css* se
+servirán los archivos contenidos en la ruta *~/assets/stylesheets* del directorio
 de tu host. En el atributo *folder*, es necesario especificar la ruta completa
 hasta ese directorio.
 

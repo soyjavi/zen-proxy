@@ -152,3 +152,34 @@ rules:
     block   : true
     ...
 ```
+
+3. Static files
+---------------
+ZENProxy let's you load balancing from your resources when ZENProxy and instances are at the same machine:
+
+```
+  - name    : statics
+    domain  : mydomain.com
+    query   : /files
+    strategy: roundrobin
+    hosts:
+      - address : localhost
+        port    : 1986
+      - address : 127.0.0.1
+        port    : 1987
+    statics:
+      - url     : /css
+        folder  : ~/assets/stylesheets
+        maxage  : 60 #1 minute
+      - url     : /img
+        folder  : /avatars
+        maxage  : 3600 #1 hour
+      - url     : /js
+        folder  : ~/assets/javascripts
+```
+
+As you can see, accessing at *http://mydomain.com/files* traffic will be redirect at instances 1986 and 1987 using *roundrobin* strategy.
+
+About statics files, when a request comes to *http://mydomain.com/files/css* ZENProxy will look for files at *~/assets/stylesheets* (remember set abosolute path).
+
+Working with statics you can save request latency.
