@@ -118,25 +118,37 @@ rules:
 
 The first query match URIs with `http://domain.com/site/foo.html` or `http://domain.com/site/bar.html` and direct traffic to instance listening at 1981. The second query direct traffic to instance listening at 1982 when the path is exactly `/user`.
 
+### 2.3 Subdomain
 
+With the attribute `subdomain` you can manage subdomains. Let's check following example:
 
+```
+rules:
+  - name      : mysubdomain
+    domain    : domain.com
+    subdomain : my
+    query     : /
+    hosts   :
+      - address : localhost
+        port    : 1980
+      - address : localhost
+        port    : 1983
 
+  - name    : mydomain
+    domain  : domain.com
+    query   : /
+    hosts   :
+      - address : localhost
+        port    : 1981
+```
 
+### 2.4 Block Incoming Port
 
+You can block ports of your instances adding the attribute `block: true`. In this way, ZENproxy will block incoming ports using IPTable rules and your instances will not be accesed like `http://mydomain.com:1980`.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+```
+rules:
+  - name    : mydomain
+    block   : true
+    ...
+```

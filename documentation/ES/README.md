@@ -167,22 +167,22 @@ máquinas. Veamos como quedaría:
 
 ```
 rules:
-  - name    : mydomain
-    domain  : domain.com
-    query   : /
-    hosts   :
-      - address : localhost
-        port    : 1980
-      - address : localhost
-        port    : 1983
-
   - name      : mysubdomain
     domain    : domain.com
     subdomain : my
     query     : /
     hosts   :
       - address : localhost
-        port    : 2014
+        port    : 1980
+      - address : localhost
+        port    : 1983
+
+  - name    : mydomain
+    domain  : domain.com
+    query   : /
+    hosts   :
+      - address : localhost
+        port    : 1981
 ```
 
 ### 2.4 Bloqueo de IPTables
@@ -213,6 +213,7 @@ reglas IPTables, solo tienes que utilizar el atributo `block`:
 rules:
   - name    : midominio
     block   : true
+    ...
 ```
 
 3. Servidor de archivos estáticos
