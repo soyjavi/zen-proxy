@@ -184,7 +184,7 @@ About statics files, when a request comes to *http://mydomain.com/files/css* ZEN
 
 Working with statics you can save request latency.
 
-4. Configurar HTTPS
+4. Configuring HTTPS servers
 -------------------
 ZENProxy can work with SSL certificates. In the following example we can see attributes required to serve https content:
 
