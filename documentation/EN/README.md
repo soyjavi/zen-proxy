@@ -122,7 +122,7 @@ The first query match URIs with `http://domain.com/site/foo.html` or `http://dom
 
 With the attribute `subdomain` you can manage subdomains. Let's check following example:
 
-```
+```yaml
 rules:
   - name      : mysubdomain
     domain    : domain.com
@@ -146,7 +146,7 @@ rules:
 
 You can block ports of your instances adding the attribute `block: true`. In this way, ZENproxy will block incoming ports using IPTable rules and your instances will not be accesed like `http://mydomain.com:1980`.
 
-```
+```yaml
 rules:
   - name    : mydomain
     block   : true
@@ -157,7 +157,7 @@ rules:
 ---------------
 ZENProxy let's you load balancing from your resources when ZENProxy and instances are at the same machine:
 
-```
+```yaml
   - name    : statics
     domain  : mydomain.com
     query   : /files
@@ -183,3 +183,36 @@ As you can see, accessing at *http://mydomain.com/files* traffic will be redirec
 About statics files, when a request comes to *http://mydomain.com/files/css* ZENProxy will look for files at *~/assets/stylesheets* (remember set abosolute path).
 
 Working with statics you can save request latency.
+
+4. Configurar HTTPS
+-------------------
+ZENProxy can work with SSL certificates. In the following example we can see attributes required to serve https content:
+
+```yaml
+protocol: https
+host    : localhost
+port    : 443
+timezone: Europe/Amsterdam
+timeout : 60000
+cert    : cert.pem
+key     : key.pem
+```
+
+It's necessary save your certificate files at */certificates* folder. ZenProxy will look for *cert.pem* and *key.pem* and will redirect traffic at instances declared at rules:
+
+```yaml
+rules:
+  - name    : mydomain
+    domain  : mydomain.com
+    strategy: random
+    https   : true
+    query   : /
+    hosts   :
+      - address : localhost
+        port    : 1980
+      - address : localhost
+        port    : 1983
+```
+
+Note that *https: true* attribute need to be added.
+

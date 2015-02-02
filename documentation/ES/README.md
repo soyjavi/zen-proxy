@@ -122,7 +122,7 @@ balanceador. Por defecto, como estrategia de balanceo, utiliza *random* en el
 caso de que quisieses utilizar la famosa estrategia *RoundRobin* simplemente
 tienes que especificarlo en la regla:
 
-```
+```yaml
 rules:
   - name    : mydomain
     strategy: roundrobin
@@ -135,7 +135,7 @@ Al comienzo de este capitulo vimos que podíamos establecer una url específica
 por medio del atributo `query`. Por ejemplo si quisieramos controlar la url
 *http://dominio.es/users* deberíamos hacer una configuración tal que asi:
 
-```
+```yaml
   ...
   - name    : midominio
     domain  : dominio.es
@@ -146,7 +146,7 @@ por medio del atributo `query`. Por ejemplo si quisieramos controlar la url
 En el caso de que queramos controlar urls más complejas podemos utilizar
 *regular expresions* para ello, veamos un ejemplo:
 
-```
+```yaml
   ...
   - name    : midominio
     domain  : dominio.es
@@ -165,7 +165,7 @@ atributo `subdomain`, obvio. Esto puede ser muy útil si en tu estrategia de
 balanceo quieres que a un determinado subdominio controle un grupo específico de
 máquinas. Veamos como quedaría:
 
-```
+```yaml
 rules:
   - name      : mysubdomain
     domain    : domain.com
@@ -192,7 +192,7 @@ servidores de respuesta están ejecutandose en la misma máquina. Por ejemplo,
 tenemos nuestro *dominio.es* que va a acceder a dos instancias NodeJS que se
 ejecutan en la misma máquina en los puertos `1980` y `1983`:
 
-```
+```yaml
 rules:
   - name    : midominio
     domain  : dominio.es
@@ -209,7 +209,7 @@ acceder a *http://dominio.es:1980* (o 1983) puesto que esos puertos están
 visibles. Para que ZENproxy bloquee automáticamente estos puertos mediante
 reglas IPTables, solo tienes que utilizar el atributo `block`:
 
-```
+```yaml
 rules:
   - name    : midominio
     block   : true
@@ -223,7 +223,7 @@ Por último vamos a aprender como crear un balanceador de recursos, sigue siendo
 igual de sencillo. Creamos una nueva nueva regla la cual controlará la url
 *http://mydomain.com/files*:
 
-```
+```yaml
   - name    : statics
     domain  : mydomain.com
     query   : /files
@@ -255,3 +255,34 @@ Utilizando esta técnica puedes ahorrar latencia puesto que ZENproxy no tiene qu
 pedir los ficheros estáticos a cada uno de los hosts, sino que el se ocupará de
 buscarlos. Evidentemente esta técnica solo es efectiva cuando tanto ZENproxy
 como los hosts se ejecutan en la misma maquina.
+
+4. Configurar HTTPS
+-------------------
+Como hemos comentado al principio, ZENProxy puede servir HTTPS. En el siguiente ejemplo vemos los datos necesario para configurar los certificados SSL:
+
+```yaml
+protocol: https
+host    : localhost
+port    : 443
+timezone: Europe/Amsterdam
+timeout : 60000
+cert    : cert.pem
+key     : key.pem
+```
+
+Para leer los certificados SSL es necesario almacenarlos en */certificates*. Desde ahí, ZENProxy buscará los ficheros *cert.pem* y *key.pem* según el ejemplo de arriba. Luego pasará a redirigir el tráfico a las instancias que tengas configuradas en las reglas:
+
+```yaml
+rules:
+  - name    : mydomain
+    domain  : mydomain.com
+    strategy: random
+    https   : true
+    query   : /
+    hosts   :
+      - address : localhost
+        port    : 1980
+      - address : localhost
+        port    : 1983
+```
+Nótese que debemos añadir el atributo *https: true* a la regla.
